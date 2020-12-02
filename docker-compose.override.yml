@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  main:
+    command: bash -c "/usr/src/app/wait-for-it.sh --timeout=0 mongo:27017 && npm run dev"
+    volumes:
+      - ./api/src:/usr/src/app/src

@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  main:
+    build: ./api
+    container_name: main
+    command: bash -c "/usr/src/app/wait-for-it.sh --timeout=0 mongo:27017 && npm start"
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api_db
+    environment:
+      - PORT=3001
+      - MONGO_URL=mongodb://api_db:27017/api
+      - MONGO_USER=raju
+      - MONGO_PASS=pass
+      - MONGO_DB=natours
+      - MONGO_HOST=api_db
+      - MONGO_PORT=27017
+    networks:
+      - realworld-docker-network
+  api_db:
+      image: mongo:latest
+      container_name: mongo
+      environment:
+        - MONGO_INITDB_ROOT_USERNAME=admin
+        - MONGO_INITDB_ROOT_PASSWORD=pass
+      volumes:
+        - mongodb_auth:/data/db
+        - "./mongo-entrypoint/:/docker-entrypoint-initdb.d/"
+      networks:
+        - realworld-docker-network
+networks:
+  realworld-docker-network:
+    driver: bridge
+volumes:
+  mongodb_auth:
+    driver: local

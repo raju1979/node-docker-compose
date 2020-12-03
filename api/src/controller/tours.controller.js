@@ -1,102 +1,106 @@
 const fs = require('fs');
+const tour = require('../helpers/tours.helper');
 
 exports.getAllTours = (req, res) => {
-    console.log(req.requestTime);
-    res.status(200).json({
-        status: 'success',
-        results: tours.length,
-        requestedAt: req.requestTime,
-        data: {
-            tours
-        }
-    });
+    
+
+    tour.find({})
+        .then(data => {
+            res.status(200).json({
+                status: 'success',
+                results: data.length,
+                requestedAt: req.requestTime,
+                data: {
+                    data
+                }
+            });
+        }).catch(err => {
+            res.status(400).json({
+                status: 'error',
+                requestedAt: req.requestTime,
+                data: {
+                    err: err
+                }
+            });
+        })
+    
 };
 
 exports.getByTourId = (req, res) => {
-    console.log('idddddddddd', req.params.id);
-    const tour = tours.find(item => item.id === +req.params.id);
-    console.log('tour', tour)
-    if(tour) {
-        res.status(200).json({
-            status: 'success',
-            data: {
-                tour
-            }
-        });
-    } else {
-        res.status(404).json({
-            success: false
-        })
-    }
-    
+    tour.findById(req.params.id)
+        .then(data => {
+            res.status(200).json({
+                status: 'success',
+                requestedAt: req.requestTime,
+                data: {
+                    data
+                }
+            });
+        }).catch(err => {
+            res.status(400).json({
+                status: 'error',
+                requestedAt: req.requestTime,
+                data: {
+                    err: err
+                }
+            });
+        });    
 }
 
-exports.createTour = (req, res) => {
-    console.log(req.body);
-    newId = tours[tours.length - 1].id + 1;
-    const newTour = Object.assign({
-        id: newId
-    }, req.body);
-
-    console.log("--------------", newTour);
-
-    tours.push(newTour);
-    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
-        if(err) console.log('errrrrrr', err);
-        res.status(201).json({
+exports.createTour = async (req, res) => {
+    try {
+        const testTour = new tour({...req.body});
+        const newTour = await testTour.save();
+        res.status(200).json({
             status: 'success',
+            requestedAt: req.requestTime,
             data: {
-                tour: newTour
+                newTour
             }
-        })
-    });
+        });
+    } catch(err) {
+        const text = err;
+        console.log('inside errrr', text)
+
+        res.status(400).send(text);
+    }
 }
 
 exports.editTour = (req, res) => {
-    console.log('idddddddddd', req.params);
-    const newItem = req.body;
-    console.log("7777777777", newItem)
-    let index;
-    const tour = tours.find((item, i) => {
-        console.log(i)
-        index = i;
-        return item.id === +req.params.id;
-    });
-    console.log('tour', tour)
-    if(tour) {
-        patchedTour = {...tour, ...newItem}
-        tours[index] = patchedTour
-        fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err => {
-            if(err) console.log('errrrrrr', err);
+    tour.updateOne({_id: req.params.id}, {...req.body})
+        .then(data => {
             res.status(200).json({
                 status: 'success',
+                requestedAt: req.requestTime,
                 data: {
-                    tour: patchedTour
+                    data
                 }
-            })
-        })
-    } else {
-        res.status(404).json({
-            success: false
-        })
-    }    
+            });
+        }).catch(err => {
+            res.status(400).json({
+                status: 'error',
+                requestedAt: req.requestTime,
+                data: {
+                    err: err
+                }
+            });
+        });
 }
 
 exports.deleteTour = (req, res) => {
-    const tour = tours.find((item, i) => {
-        return item.id === +req.params.id;
-    });
-    console.log("ddddddddddddd", tour);
-    if(tour) {
-        const tempTours = tours.filter(item => item.id !== +req.params.id);
-        fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tempTours), err => {
-            if(!err) {
-                res.send(204);
-            }
-        })
-    } else {
-        res.status(404).json({
-            success: false
-        })
-    }    
+    tour.deleteOne({_id: req.params.id})
+        .then(data => {
+            res.status(204).json({
+                status: 'success',
+                requestedAt: req.requestTime
+            });
+        }).catch(err => {
+            res.status(400).json({
+                status: 'error',
+                requestedAt: req.requestTime,
+                data: {
+                    err: err
+                }
+            });
+        });   
 }

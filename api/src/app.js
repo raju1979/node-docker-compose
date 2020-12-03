@@ -6,8 +6,6 @@ const winston = require('./config/winston');
 const app = express();
 app.use(express.json());
 
-
-
 global.tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
 global.users = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/users.json`));
 

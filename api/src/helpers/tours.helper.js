@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const { stream } = require('../config/winston');
 const { Schema } = mongoose;
+const slugify = require('slugify')
 
 const tourSchema = new Schema({
   name: {
@@ -52,9 +52,24 @@ const tourSchema = new Schema({
     type: Date,
     default: Date.now()
   },
-  startDate: [Date]
+  startDates: [Date],
+  slug: String
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
 });
+
+tourSchema.virtual('durationWeeks').get(function() {
+  return this.duration / 7;
+});
+
+// Document middleware: runs before .save() and .create() but not on .insertMany
+tourSchema.pre("save", function(next) {
+  this.slug = slugify(this.name, {lower: true});
+  next();
+})
 
 const Tour = mongoose.model('Tour', tourSchema);
 module.exports = Tour;
+
 
